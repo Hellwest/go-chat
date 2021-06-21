@@ -7,3 +7,10 @@ type UserModel struct {
 	Login    string    `bson:"Login" json:"Login"`
 	Password string    `bson:"Password" json:"Password"`
 }
+
+func (m *UserModel) toUserType() UserDTO {
+	return UserDTO{
+		Id:    m.Id,
+		Login: m.Login,
+	}
+}

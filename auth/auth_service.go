@@ -2,14 +2,16 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"go_chat/auth/types"
 	db "go_chat/database"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func FindOne(login string) (UserModel, error) {
+func FindOne(login string) (UserDTO, error) {
 	mongoDocument := db.Client.Database("chat").Collection("users").FindOne(
 		context.TODO(),
 		bson.D{{Key: "Login", Value: login}},
@@ -17,14 +19,22 @@ func FindOne(login string) (UserModel, error) {
 
 	var result UserModel
 	if err := mongoDocument.Decode(&result); err != nil {
-		return result, err
+		return result.toUserType(), err
 	}
 
-	return result, nil
+	return result.toUserType(), nil
 }
 
-func Register(input types.RegisterInput) (UserModel, error) {
+func Register(input types.RegisterInput) (UserDTO, error) {
 	uuid := uuid.New()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	input.Password = string(hashedPassword)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("The hash:", string(hashedPassword))
 
 	userModel := UserModel{
 		Id:       uuid,
@@ -32,11 +42,11 @@ func Register(input types.RegisterInput) (UserModel, error) {
 		Password: input.Password,
 	}
 
-	_, err := db.Client.Database("chat").Collection("users").InsertOne(context.TODO(), &userModel)
+	_, err = db.Client.Database("chat").Collection("users").InsertOne(context.TODO(), &userModel)
 
 	if err != nil {
-		return userModel, err
+		return userModel.toUserType(), err
 	}
 
-	return userModel, nil
+	return userModel.toUserType(), nil
 }
