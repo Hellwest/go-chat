@@ -5,15 +5,25 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func Routes(router *gin.Engine) {
 	auth := router.Group("/auth")
 
-	auth.GET("/:login", func(c *gin.Context) {
-		login := c.Param("login")
+	// auth.GET("me", func(c *gin.Context) {
 
-		user, err := FindOne(login)
+	// })
+
+	auth.GET("/:id", func(c *gin.Context) {
+		id, err := uuid.Parse(c.Param("id"))
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := GetUser(id)
 
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -35,5 +45,20 @@ func Routes(router *gin.Engine) {
 		}
 
 		c.JSON(http.StatusOK, user)
+	})
+
+	auth.POST("login", func(c *gin.Context) {
+		login, password := c.PostForm("login"), c.PostForm("password")
+
+		jwt, err := Login(types.LoginInput{Login: login, Password: password})
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"jwt": jwt,
+		})
 	})
 }

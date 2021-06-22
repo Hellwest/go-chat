@@ -5,24 +5,64 @@ import (
 	"fmt"
 	"go_chat/auth/types"
 	db "go_chat/database"
+	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func FindOne(login string) (UserDTO, error) {
+func FindOneById(id uuid.UUID) (UserModel, error) {
 	mongoDocument := db.Client.Database("chat").Collection("users").FindOne(
 		context.TODO(),
-		bson.D{{Key: "Login", Value: login}},
+		bson.D{{Key: "Id", Value: id}},
 	)
 
-	var result UserModel
-	if err := mongoDocument.Decode(&result); err != nil {
-		return result.toUserType(), err
+	var model UserModel
+	if err := mongoDocument.Decode(&model); err != nil {
+		return model, err
 	}
 
-	return result.toUserType(), nil
+	return model, nil
+}
+
+func FindOneByLogin(login string) (UserModel, error) {
+	mongoDocument := db.Client.Database("chat").Collection("users").FindOne(context.TODO(), bson.D{{Key: "Login", Value: login}})
+
+	var model UserModel
+	if err := mongoDocument.Decode(&model); err != nil {
+		return model, err
+	}
+
+	return model, nil
+}
+
+// func Me(tokenString string) (bool, error) {
+// 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+// 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+// 			return false, errors.New("Unexpected signing method")
+// 		}
+
+// 		return "jwt_secret", nil
+// 	})
+
+// 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+// 		fmt.Println(claims["Id"])
+// 		return true, nil
+// 	} else {
+// 		panic(err)
+// 	}
+// }
+
+func GetUser(id uuid.UUID) (UserDTO, error) {
+	entity, err := FindOneById(id)
+
+	if err != nil {
+		return UserDTO{}, err
+	}
+
+	return entity.toUserType(), nil
 }
 
 func Register(input types.RegisterInput) (UserDTO, error) {
@@ -49,4 +89,34 @@ func Register(input types.RegisterInput) (UserDTO, error) {
 	}
 
 	return userModel.toUserType(), nil
+}
+
+func Login(input types.LoginInput) (string, error) {
+	user, err := FindOneByLogin(input.Login)
+
+	if err != nil {
+		return "", err
+	}
+
+	// Compare passwords
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+
+	if err != nil {
+		return "", err
+	}
+
+	// Encode JWT
+	token := jwt.New(jwt.SigningMethodHS512)
+	token.Claims = jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour * time.Duration(24)).Unix(),
+		"iat": time.Now().Unix(),
+		"sub": user.Id,
+	}
+
+	tokenString, err := token.SignedString([]byte("jwt_secret"))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
