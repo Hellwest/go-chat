@@ -6,3 +6,7 @@ type UserDTO struct {
 	Id    uuid.UUID `json:"Id"`
 	Login string    `json:"Login"`
 }
+
+func NewUserDTO() UserDTO {
+	return UserDTO{}
+}

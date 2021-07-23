@@ -34,10 +34,14 @@ func Routes(router *gin.Engine) {
 	})
 
 	auth.POST("register", func(c *gin.Context) {
-		login := c.PostForm("login")
-		password := c.PostForm("password")
+		var input types.RegisterInput
 
-		user, err := Register(types.RegisterInput{Login: login, Password: password})
+		if err := c.Bind(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := Register(input)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -48,9 +52,14 @@ func Routes(router *gin.Engine) {
 	})
 
 	auth.POST("login", func(c *gin.Context) {
-		login, password := c.PostForm("login"), c.PostForm("password")
+		var input types.LoginInput
 
-		jwt, err := Login(types.LoginInput{Login: login, Password: password})
+		if err := c.Bind(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		jwt, err := Login(input)
 
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

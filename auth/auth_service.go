@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"go_chat/auth/types"
 	db "go_chat/database"
 	"time"
@@ -20,22 +19,18 @@ func FindOneById(id uuid.UUID) (UserModel, error) {
 	)
 
 	var model UserModel
-	if err := mongoDocument.Decode(&model); err != nil {
-		return model, err
-	}
+	err := mongoDocument.Decode(&model)
 
-	return model, nil
+	return model, err
 }
 
 func FindOneByLogin(login string) (UserModel, error) {
 	mongoDocument := db.Client.Database("chat").Collection("users").FindOne(context.TODO(), bson.D{{Key: "Login", Value: login}})
 
 	var model UserModel
-	if err := mongoDocument.Decode(&model); err != nil {
-		return model, err
-	}
+	err := mongoDocument.Decode(&model)
 
-	return model, nil
+	return model, err
 }
 
 // func Me(tokenString string) (bool, error) {
@@ -59,36 +54,34 @@ func GetUser(id uuid.UUID) (UserDTO, error) {
 	entity, err := FindOneById(id)
 
 	if err != nil {
-		return UserDTO{}, err
+		return NewUserDTO(), err
 	}
 
-	return entity.toUserType(), nil
+	return entity.toUserDTO(), nil
 }
 
 func Register(input types.RegisterInput) (UserDTO, error) {
-	uuid := uuid.New()
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	input.Password = string(hashedPassword)
+	login, password := input.Login, input.Password
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
-		panic(err)
+		return NewUserDTO(), err
 	}
 
-	fmt.Println("The hash:", string(hashedPassword))
-
 	userModel := UserModel{
-		Id:       uuid,
-		Login:    input.Login,
-		Password: input.Password,
+		Id:       uuid.New(),
+		Login:    login,
+		Password: string(hashedPassword),
 	}
 
 	_, err = db.Client.Database("chat").Collection("users").InsertOne(context.TODO(), &userModel)
 
 	if err != nil {
-		return userModel.toUserType(), err
+		return NewUserDTO(), err
 	}
 
-	return userModel.toUserType(), nil
+	return userModel.toUserDTO(), nil
 }
 
 func Login(input types.LoginInput) (string, error) {
