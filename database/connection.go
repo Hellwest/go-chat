@@ -15,6 +15,7 @@ func Connection() *mongo.Client {
 	clientOptions := options.Client().ApplyURI("mongodb://admin:chat@localhost:27017/admin")
 
 	// Connect to MongoDB
+	fmt.Println("Connecting to the database")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 
 	if err != nil {
