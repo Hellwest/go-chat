@@ -5,7 +5,7 @@ volumes:
 
 services:
   db:
-    image: mongo:5.0.0-rc3-focal
+    image: mongo:5.0.1-focal
     container_name: db
     restart: always
     ports:
