@@ -8,9 +8,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var Client = Connection()
+var Client = getClient()
 
-func Connection() *mongo.Client {
+func getClient() *mongo.Client {
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://admin:chat@localhost:27017/admin")
 
@@ -32,4 +32,8 @@ func Connection() *mongo.Client {
 	fmt.Println("Connected to MongoDB")
 
 	return client
+}
+
+func GetCollection(collectionName string) *mongo.Collection {
+	return Client.Database("chat").Collection(collectionName)
 }

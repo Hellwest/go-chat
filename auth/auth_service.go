@@ -13,22 +13,22 @@ import (
 )
 
 func FindOneById(id uuid.UUID) (UserModel, error) {
-	mongoDocument := db.Client.Database("chat").Collection("users").FindOne(
+	userDocument := db.GetCollection("users").FindOne(
 		context.TODO(),
 		bson.D{{Key: "Id", Value: id}},
 	)
 
 	var model UserModel
-	err := mongoDocument.Decode(&model)
+	err := userDocument.Decode(&model)
 
 	return model, err
 }
 
 func FindOneByLogin(login string) (UserModel, error) {
-	mongoDocument := db.Client.Database("chat").Collection("users").FindOne(context.TODO(), bson.D{{Key: "Login", Value: login}})
+	userDocument := db.GetCollection("users").FindOne(context.TODO(), bson.D{{Key: "Login", Value: login}})
 
 	var model UserModel
-	err := mongoDocument.Decode(&model)
+	err := userDocument.Decode(&model)
 
 	return model, err
 }
@@ -75,7 +75,7 @@ func Register(input types.RegisterInput) (UserDTO, error) {
 		Password: string(hashedPassword),
 	}
 
-	_, err = db.Client.Database("chat").Collection("users").InsertOne(context.TODO(), &userModel)
+	_, err = db.GetCollection("users").InsertOne(context.TODO(), &userModel)
 
 	if err != nil {
 		return NewUserDTO(), err
