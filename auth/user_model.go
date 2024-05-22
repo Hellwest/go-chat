@@ -3,9 +3,9 @@ package auth
 import "github.com/google/uuid"
 
 type UserModel struct {
-	Id       uuid.UUID `bson:"Id" json:"Id"`
-	Login    string    `bson:"Login" json:"Login"`
-	Password string    `bson:"Password" json:"Password"`
+	Id       uuid.UUID `bson:"id" json:"id"`
+	Login    string    `bson:"login" json:"login"`
+	Password string    `bson:"password" json:"password"`
 }
 
 func (m *UserModel) toUserDTO() UserDTO {

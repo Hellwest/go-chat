@@ -15,7 +15,7 @@ import (
 func FindOneById(id uuid.UUID) (UserModel, error) {
 	userDocument := db.GetCollection("users").FindOne(
 		context.TODO(),
-		bson.D{{Key: "Id", Value: id}},
+		bson.D{{Key: "id", Value: id}},
 	)
 
 	var model UserModel

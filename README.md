@@ -2,7 +2,7 @@
 
 ## Description
 
-Simple Golang text chat webserver
+Simple Golang text chat web server
 
 ## Features
 
@@ -20,7 +20,7 @@ Simple Golang text chat webserver
 * Websocket messaging
 * Docker
 
-## Launch
+## Local launch
 
 ### Prerequisites
 
@@ -36,10 +36,10 @@ cd go-chat
 
 2. Start the database and its web interface
 
-- `docker compose up`
+* `docker compose up`
 
 The web interface is now available at [localhost:8081](http://localhost:8081)
 
 3. Run the go-chat app
 
-- `go run main.go`
+* `go run main.go`

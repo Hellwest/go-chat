@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go_chat/auth"
+	"go_chat/rooms"
 	"os"
 
 	db "go_chat/database"
@@ -26,6 +27,7 @@ func main() {
 
 	router := gin.Default()
 	auth.Routes(router)
+	rooms.Routes(router)
 
 	defer db.Client.Disconnect(context.TODO())
 	router.Run(port)
